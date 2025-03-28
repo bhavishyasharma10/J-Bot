@@ -1,109 +1,180 @@
-import db from '../config/database';
+import mysql, { RowDataPacket } from 'mysql2/promise';
+import { DatabaseConfig } from '../types';
 import logger from '../config/logger';
 import { TodoItem, TodoListCommand } from '../types';
 
+const dbConfig: DatabaseConfig = {
+    host: process.env.DB_HOST as string,
+    port: parseInt(process.env.DB_PORT as string, 10),
+    user: process.env.DB_USER as string,
+    password: process.env.DB_PASSWORD as string,
+    database: process.env.DB_NAME as string
+};
+
+interface JournalEntry extends RowDataPacket {
+    id: number;
+    content: string;
+    created_at: string;
+    type: string;
+}
+
 class JournalService {
-    static async saveHighlight(from: string, highlight: string): Promise<void> {
+    private static async getConnection() {
+        return await mysql.createConnection(dbConfig);
+    }
+
+    static async saveHighlight(userId: string, content: string): Promise<void> {
+        const conn = await this.getConnection();
         try {
-            const query = 'INSERT INTO highlights (user_id, content, created_at) VALUES (?, ?, NOW())';
-            await db.promise().execute(query, [from, highlight]);
-            logger.info(`Highlight saved for user ${from}`);
-        } catch (error) {
-            logger.error(`Failed to save highlight for user ${from}:`, error);
-            throw error;
+            await conn.execute(
+                'INSERT INTO highlights (user_id, content) VALUES (?, ?)',
+                [userId, content]
+            );
+        } finally {
+            await conn.end();
         }
     }
 
-    static async saveThought(from: string, thought: string): Promise<void> {
+    static async saveThought(userId: string, content: string): Promise<void> {
+        const conn = await this.getConnection();
         try {
-            const query = 'INSERT INTO thoughts (user_id, content, created_at) VALUES (?, ?, NOW())';
-            await db.promise().execute(query, [from, thought]);
-            logger.info(`Thought saved for user ${from}`);
-        } catch (error) {
-            logger.error(`Failed to save thought for user ${from}:`, error);
-            throw error;
+            await conn.execute(
+                'INSERT INTO thoughts (user_id, content) VALUES (?, ?)',
+                [userId, content]
+            );
+        } finally {
+            await conn.end();
         }
     }
 
-    static async saveIdea(from: string, idea: string): Promise<void> {
+    static async saveIdea(userId: string, content: string): Promise<void> {
+        const conn = await this.getConnection();
         try {
-            const query = 'INSERT INTO ideas (user_id, content, created_at) VALUES (?, ?, NOW())';
-            await db.promise().execute(query, [from, idea]);
-            logger.info(`Idea saved for user ${from}`);
-        } catch (error) {
-            logger.error(`Failed to save idea for user ${from}:`, error);
-            throw error;
+            await conn.execute(
+                'INSERT INTO ideas (user_id, content) VALUES (?, ?)',
+                [userId, content]
+            );
+        } finally {
+            await conn.end();
         }
     }
 
-    static async saveAffirmation(from: string, affirmation: string): Promise<void> {
+    static async saveAffirmation(userId: string, content: string): Promise<void> {
+        const conn = await this.getConnection();
         try {
-            const query = 'INSERT INTO affirmations (user_id, content, created_at) VALUES (?, ?, NOW())';
-            await db.promise().execute(query, [from, affirmation]);
-            logger.info(`Affirmation saved for user ${from}`);
-        } catch (error) {
-            logger.error(`Failed to save affirmation for user ${from}:`, error);
-            throw error;
+            await conn.execute(
+                'INSERT INTO affirmations (user_id, content) VALUES (?, ?)',
+                [userId, content]
+            );
+        } finally {
+            await conn.end();
         }
     }
 
-    static async saveGratitude(from: string, gratitude: string): Promise<void> {
+    static async saveGratitude(userId: string, content: string): Promise<void> {
+        const conn = await this.getConnection();
         try {
-            const query = 'INSERT INTO gratitude (user_id, content, created_at) VALUES (?, ?, NOW())';
-            await db.promise().execute(query, [from, gratitude]);
-            logger.info(`Gratitude saved for user ${from}`);
-        } catch (error) {
-            logger.error(`Failed to save gratitude for user ${from}:`, error);
-            throw error;
+            await conn.execute(
+                'INSERT INTO gratitude (user_id, content) VALUES (?, ?)',
+                [userId, content]
+            );
+        } finally {
+            await conn.end();
         }
     }
 
-    static async saveReflection(from: string, reflection: string): Promise<void> {
+    static async saveReflection(userId: string, content: string): Promise<void> {
+        const conn = await this.getConnection();
         try {
-            const query = 'INSERT INTO reflections (user_id, content, created_at) VALUES (?, ?, NOW())';
-            await db.promise().execute(query, [from, reflection]);
-            logger.info(`Reflection saved for user ${from}`);
-        } catch (error) {
-            logger.error(`Failed to save reflection for user ${from}:`, error);
-            throw error;
+            await conn.execute(
+                'INSERT INTO reflections (user_id, content) VALUES (?, ?)',
+                [userId, content]
+            );
+        } finally {
+            await conn.end();
         }
     }
 
-    static async handleTodoCommand(from: string, command: TodoListCommand): Promise<string> {
+    static async handleTodoCommand(userId: string, command: TodoListCommand): Promise<string> {
+        const conn = await this.getConnection();
         try {
             switch (command.action) {
                 case 'add':
                     if (!command.content) {
-                        throw new Error('Content is required for adding todo items');
+                        return "❌ Please provide content for the todo item.";
                     }
-                    const addQuery = 'INSERT INTO todo_lists (user_id, category, content, created_at) VALUES (?, ?, ?, NOW())';
-                    await db.promise().execute(addQuery, [from, command.category, command.content]);
-                    return `✅ Added to ${command.category} todo list`;
+                    await conn.execute(
+                        'INSERT INTO todo_lists (user_id, category, content) VALUES (?, ?, ?)',
+                        [userId, command.category, command.content]
+                    );
+                    return `✅ Added to ${command.category} todo list: ${command.content}`;
 
                 case 'complete':
-                    const completeQuery = 'UPDATE todo_lists SET is_completed = TRUE WHERE user_id = ? AND category = ? AND is_completed = FALSE LIMIT 1';
-                    const [result] = await db.promise().execute(completeQuery, [from, command.category]);
-                    if ((result as any).affectedRows === 0) {
-                        return `No pending items in ${command.category} todo list`;
-                    }
-                    return `✅ Completed latest item in ${command.category} todo list`;
+                    await conn.execute(
+                        'UPDATE todo_lists SET completed = true WHERE user_id = ? AND category = ? AND completed = false',
+                        [userId, command.category]
+                    );
+                    return `✅ Marked all ${command.category} items as complete!`;
 
                 case 'list':
-                    const listQuery = 'SELECT content, is_completed FROM todo_lists WHERE user_id = ? AND category = ? ORDER BY created_at DESC LIMIT 5';
-                    const [todos] = await db.promise().execute(listQuery, [from, command.category]);
-                    if ((todos as any[]).length === 0) {
-                        return `No items in ${command.category} todo list`;
+                    const [rows] = await conn.execute(
+                        'SELECT content, completed FROM todo_lists WHERE user_id = ? AND category = ? ORDER BY created_at DESC',
+                        [userId, command.category]
+                    );
+                    const items = rows as { content: string; completed: boolean }[];
+                    if (items.length === 0) {
+                        return `📝 No items in ${command.category} todo list.`;
                     }
-                    return (todos as any[]).map(todo => 
-                        `${todo.is_completed ? '✅' : '⏳'} ${todo.content}`
-                    ).join('\n');
+                    return items
+                        .map(item => `${item.completed ? '✅' : '⏳'} ${item.content}`)
+                        .join('\n');
 
                 default:
-                    throw new Error('Invalid todo command action');
+                    return "❌ Invalid todo command action.";
             }
-        } catch (error) {
-            logger.error(`Failed to handle todo command for user ${from}:`, error);
-            throw error;
+        } finally {
+            await conn.end();
+        }
+    }
+
+    static async getAllEntries(userId: string): Promise<JournalEntry[]> {
+        const conn = await this.getConnection();
+        try {
+            const [highlights] = await conn.execute<JournalEntry[]>(
+                'SELECT id, content, created_at, "highlight" as type FROM highlights WHERE user_id = ? ORDER BY created_at DESC',
+                [userId]
+            );
+            const [thoughts] = await conn.execute<JournalEntry[]>(
+                'SELECT id, content, created_at, "thought" as type FROM thoughts WHERE user_id = ? ORDER BY created_at DESC',
+                [userId]
+            );
+            const [ideas] = await conn.execute<JournalEntry[]>(
+                'SELECT id, content, created_at, "idea" as type FROM ideas WHERE user_id = ? ORDER BY created_at DESC',
+                [userId]
+            );
+            const [affirmations] = await conn.execute<JournalEntry[]>(
+                'SELECT id, content, created_at, "affirmation" as type FROM affirmations WHERE user_id = ? ORDER BY created_at DESC',
+                [userId]
+            );
+            const [gratitude] = await conn.execute<JournalEntry[]>(
+                'SELECT id, content, created_at, "gratitude" as type FROM gratitude WHERE user_id = ? ORDER BY created_at DESC',
+                [userId]
+            );
+            const [reflections] = await conn.execute<JournalEntry[]>(
+                'SELECT id, content, created_at, "reflection" as type FROM reflections WHERE user_id = ? ORDER BY created_at DESC',
+                [userId]
+            );
+
+            return [
+                ...highlights,
+                ...thoughts,
+                ...ideas,
+                ...affirmations,
+                ...gratitude,
+                ...reflections
+            ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        } finally {
+            await conn.end();
         }
     }
 }
