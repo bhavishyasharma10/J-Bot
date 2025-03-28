@@ -14,13 +14,13 @@
     "db:setup": "ts-node src/config/setup.ts"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "helmet": "^7.1.0",
     "mysql2": "^3.14.0",
     "twilio": "^5.5.1",
-    "winston": "^3.11.0",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0"
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -34,6 +34,6 @@
     "nodemon": "^3.1.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.2"
   }
 }
