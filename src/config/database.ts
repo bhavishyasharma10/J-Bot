@@ -1,6 +1,9 @@
 import mysql from 'mysql2';
-import { DatabaseConfig } from '../types';
-import logger from './logger';
+import { DatabaseConfig } from '@/lib/types';
+import logger from '@/config/logger';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const dbConfig: DatabaseConfig = {
     uri: process.env.MYSQL_PUBLIC_URL as string

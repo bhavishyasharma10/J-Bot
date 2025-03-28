@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import db from './database';
-import logger from './logger';
+import connection from '@/config/database';
+import logger from '@/config/logger';
 
 async function setupDatabase(): Promise<void> {
     try {
@@ -17,7 +17,7 @@ async function setupDatabase(): Promise<void> {
 
         // Execute each statement separately
         for (const statement of statements) {
-            await db.promise().query(statement);
+            await connection.promise().query(statement);
             logger.info(`Executed SQL statement: ${statement.substring(0, 50)}...`);
         }
 
