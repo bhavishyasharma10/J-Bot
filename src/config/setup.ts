@@ -1,10 +1,14 @@
 import fs from 'fs';
 import path from 'path';
-import connection from '@/config/database';
+import Database from '@/config/database';
 import logger from '@/config/logger';
 
 async function setupDatabase(): Promise<void> {
     try {
+        // Initialize database connection
+        const db = Database.getInstance();
+        await db.initialize();
+
         // Read the SQL file
         const sqlFile = path.join(__dirname, 'setup.sql');
         const sql = fs.readFileSync(sqlFile, 'utf8');
@@ -17,7 +21,7 @@ async function setupDatabase(): Promise<void> {
 
         // Execute each statement separately
         for (const statement of statements) {
-            await connection.promise().query(statement);
+            await db.getSequelize().query(statement);
             logger.info(`Executed SQL statement: ${statement.substring(0, 50)}...`);
         }
 
@@ -29,7 +33,7 @@ async function setupDatabase(): Promise<void> {
 }
 
 // Run setup if this file is executed directly
-if (require.main === module) {
+if (process.argv[1] === __filename) {
     setupDatabase()
         .then(() => process.exit(0))
         .catch(() => process.exit(1));

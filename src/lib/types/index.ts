@@ -49,4 +49,34 @@ export interface TodoListCommand {
     category: 'work' | 'family' | 'self_care';
     action: 'add' | 'complete' | 'list';
     content?: string;
+}
+
+export interface Intent {
+    id: number;
+    name: string;
+    description: string;
+    category: string;
+    handler: string;
+    is_active: boolean;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface IntentPattern {
+    id: number;
+    intent_id: number;
+    pattern: string;
+    created_at: Date;
+}
+
+export interface IntentHandler {
+    name: string;
+    execute: (userId: string, content: string) => Promise<string>;
+}
+
+export interface ParsedIntent {
+    intent: string;
+    category: string;
+    content: string;
+    confidence: number;
 } 

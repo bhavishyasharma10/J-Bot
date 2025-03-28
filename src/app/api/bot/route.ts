@@ -1,41 +1,24 @@
 import { NextResponse } from 'next/server';
-import MessageController from '@/controllers/messageController';
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { initializeDatabase } from '@/config/init';
+import { handleIncomingMessage } from '@/controllers/messageController';
+
+// Initialize database when the module is loaded
+initializeDatabase().catch(error => {
+    console.error('Failed to initialize database:', error);
+    process.exit(1);
+});
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.formData();
-    const formDataObj: Record<string, string> = {};
-    for (const [key, value] of body.entries()) {
-      formDataObj[key] = value.toString();
+    try {
+        /** Body is of FormData type */
+        const body = await request.formData();
+        const response = await handleIncomingMessage(body);
+        return NextResponse.json(response);
+    } catch (error) {
+        console.error('Error processing message:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
     }
-    
-    // Create Express-like request and response objects
-    const expressReq = {
-      body: formDataObj,
-      // Add other Express request properties as needed
-    } as unknown as ExpressRequest;
-
-    const expressRes = {
-      sendStatus: (status: number) => {
-        return NextResponse.json({}, { status });
-      },
-      // Add minimal required Express Response properties
-      status: 200,
-      send: () => {},
-      json: () => {},
-      // Add other required properties as needed
-    } as unknown as ExpressResponse;
-    
-    // Call your existing controller method with Express-like objects
-    await MessageController.handleIncomingMessage(expressReq, expressRes);
-    
-    return NextResponse.json({ message: 'Success' });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
 }
