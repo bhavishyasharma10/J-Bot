@@ -1,6 +1,6 @@
 import connection from "@/config/database";
 import logger from "@/config/logger";
-import { TodoListCommand } from "@/types";
+import { TodoListCommand } from "@/lib/types";
 
 class JournalService {
     static async saveHighlight(from: string, highlight: string): Promise<void> {

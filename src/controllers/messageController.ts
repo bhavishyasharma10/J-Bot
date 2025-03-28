@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import TwilioService from '@/app/services/twilioService';
-import JournalService from '@/app/services/journalService';
+import TwilioService from '@/lib/services/twilioService';
+import JournalService from '@/lib/services/journalService';
 import logger from "@/config/logger";
-import { WhatsAppMessage, TodoListCommand } from '@/types';
+import { WhatsAppMessage, TodoListCommand } from '@/lib/types';
 
 class MessageController {
     static async handleIncomingMessage(req: Request, res: Response): Promise<void> {

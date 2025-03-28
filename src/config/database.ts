@@ -1,5 +1,5 @@
 import mysql from 'mysql2';
-import { DatabaseConfig } from '@/types';
+import { DatabaseConfig } from '@/lib/types';
 import logger from '@/config/logger';
 import dotenv from 'dotenv';
 
