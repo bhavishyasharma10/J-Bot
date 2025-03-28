@@ -1,6 +1,6 @@
 import db from '../config/database';
 import logger from '../config/logger';
-import { TodoItem, TodoListCommand } from '../types';
+import { TodoListCommand } from '../types';
 
 class JournalService {
     static async saveHighlight(from: string, highlight: string): Promise<void> {
