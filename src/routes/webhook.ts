@@ -3,6 +3,6 @@ import MessageController from '../controllers/messageController';
 
 const router = express.Router();
 
-router.post('/', MessageController.handleIncomingMessage);
+router.post('/bot', MessageController.handleIncomingMessage);
 
 export default router; 

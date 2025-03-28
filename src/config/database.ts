@@ -3,24 +3,17 @@ import { DatabaseConfig } from '../types';
 import logger from './logger';
 
 const dbConfig: DatabaseConfig = {
-    host: process.env.DB_HOST as string,
-    port: parseInt(process.env.DB_PORT as string, 10),
-    user: process.env.DB_USER as string,
-    password: process.env.DB_PASSWORD as string,
-    database: process.env.DB_NAME as string
+    uri: process.env.MYSQL_PUBLIC_URL as string
 };
 
 // Log configuration (without sensitive data)
 logger.info('Database Configuration:', {
-    host: dbConfig.host,
-    port: dbConfig.port,
-    user: dbConfig.user,
-    database: dbConfig.database,
-    passwordSet: !!dbConfig.password
+    host: 'Using MYSQL_PUBLIC_URL',
+    uri: dbConfig.uri ? 'Set' : 'Not Set'
 });
 
 // Create connection with promise wrapper
-const connection = mysql.createConnection(dbConfig);
+const connection = mysql.createConnection(dbConfig.uri);
 
 // Function to test connection
 async function testConnection(): Promise<void> {
@@ -48,4 +41,4 @@ testConnection().catch(err => {
     process.exit(1);
 });
 
-export default connection; 
+export default connection;
