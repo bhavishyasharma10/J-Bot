@@ -7,6 +7,7 @@ import { RuleBasedParserService } from "./RuleBasedParserService";
 import { UserService } from "./UserService";
 import { AIService } from "./AIService";
 import { OpenAIService } from "./OpenAIService";
+import { GeminiService } from "./GeminiService";
 
 export {
     JournalService,
@@ -17,5 +18,6 @@ export {
     RuleBasedParserService,
     UserService,
     AIService,
-    OpenAIService
+    OpenAIService,
+    GeminiService
 };
