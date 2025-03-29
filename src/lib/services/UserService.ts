@@ -22,7 +22,7 @@ class UserService {
         }
     }
 
-    static async isNewUser(userId: string): Promise<boolean> {
+    static async isNewUser(userId: string, minutesThreshold: number = 1): Promise<boolean> {
         try {
             const [rows]: any = await pool.execute(
                 "SELECT created_at FROM Users WHERE id = ?",
@@ -35,10 +35,10 @@ class UserService {
 
             const createdAt = new Date(rows[0].created_at);
             const now = new Date();
-            const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+            const minutesSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60);
 
-            // Consider a user new if they were created in the last hour
-            return hoursSinceCreation < 1;
+            // Consider a user new if they were created within the specified minutesThreshold
+            return minutesSinceCreation < minutesThreshold;
         } catch (error) {
             logger.error(`❌ Error checking if user is new: ${error}`);
             return false;
