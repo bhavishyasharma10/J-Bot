@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import logger from "@/config/logger";
-import { JournalService, RawUserInputService, ReminderService, TaskService, TwilioService, UserService, AIService } from "@/lib/services/index";
+import { JournalService, RawUserInputService, ReminderService, TaskService, TwilioService, UserService, AIService } from "@/lib/services/Index";
 export class MessageController {
     static async handleIncomingMessage(req: Request, res: Response): Promise<void> {
         const from = req.body.From; // "whatsapp:+91XXXX11XXXX"

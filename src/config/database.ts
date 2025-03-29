@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise';
-import { DatabaseConfig } from '@/lib/types';
+import { DatabaseConfig } from '@/lib/types/Index';
 import logger from '@/config/logger';
 import dotenv from 'dotenv';
 
