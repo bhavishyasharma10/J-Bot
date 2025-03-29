@@ -1,4 +1,4 @@
-export class RuleBasedParserService {
+class RuleBasedParserService {
     static parseMessage(message: string): any[] {
         const actions: any[] = [];
 
@@ -40,3 +40,5 @@ export class RuleBasedParserService {
         return actions;
     }
 }
+
+export default RuleBasedParserService;

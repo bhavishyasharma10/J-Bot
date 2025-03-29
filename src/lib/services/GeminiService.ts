@@ -5,7 +5,7 @@ import { buildPrompt } from "../utils/prompt";
 
 const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-export class GeminiService {
+class GeminiService {
     static async processMessage(message: string): Promise<AIResponse> {
         try {
             // Step 1: Build the structured prompt
@@ -31,3 +31,5 @@ export class GeminiService {
         }
     }
 }
+
+export default GeminiService;

@@ -2,7 +2,7 @@ import pool from "@/config/database";
 import logger from "@/config/logger";
 import { Task } from "../types/Task";
 
-export class TaskService {
+class TaskService {
     /**
      * Saves a new task.
      */
@@ -96,3 +96,5 @@ export class TaskService {
         }
     }
 }
+
+export default TaskService;

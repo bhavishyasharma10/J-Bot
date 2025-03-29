@@ -1,7 +1,7 @@
 import pool from '@/config/database';
 import logger from '@/config/logger';
 
-export class ReminderService {
+class ReminderService {
     static async createReminder(userId: string, reminderText: string, reminderTime: string, targetId: string | null = null): Promise<void> {
         try {
             const query = `INSERT INTO Reminders (user_id, reminder_text, reminder_time, target_id, status) VALUES (?, ?, ?, ?, 'pending')`;
@@ -49,3 +49,5 @@ export class ReminderService {
         }
     }
 }
+
+export default ReminderService;

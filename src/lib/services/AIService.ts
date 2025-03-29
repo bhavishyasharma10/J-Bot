@@ -1,8 +1,8 @@
 import logger from '@/config/logger';
-import { RuleBasedParserService } from './RuleBasedParserService';
-import { GeminiService } from "./GeminiService";
+import RuleBasedParserService from './RuleBasedParserService';
+import GeminiService from "./GeminiService";
 
-export class AIService {
+class AIService {
     static async processMessage(message: string): Promise<any> {
         try {
             // Step 2: Use Gemini as fallback
@@ -16,3 +16,5 @@ export class AIService {
         }
     }
 }
+
+export default AIService;

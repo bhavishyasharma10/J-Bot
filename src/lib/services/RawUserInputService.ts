@@ -1,7 +1,7 @@
 import pool from '@/config/database';
 import logger from '@/config/logger';
 
-export class RawUserInputService {
+class RawUserInputService {
     static async saveRawInput(userId: string, rawText: string, metadata: object | null = null): Promise<string> {
         try {
             const query = `INSERT INTO RawUserInputs (user_id, raw_text, metadata) VALUES (?, ?, ?)`;
@@ -41,3 +41,5 @@ export class RawUserInputService {
         }
     }
 }
+
+export default RawUserInputService;

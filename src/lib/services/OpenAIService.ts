@@ -7,7 +7,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY!,
 });
 
-export class OpenAIService {
+class OpenAIService {
     static async processMessage(message: string): Promise<AIResponse> {
         try {
             // Step 1: Build the structured prompt
@@ -36,3 +36,5 @@ export class OpenAIService {
         }
     }
 }
+
+export default OpenAIService;

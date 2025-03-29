@@ -1,7 +1,7 @@
 import pool from "@/config/database";
 import logger from "@/config/logger";
 
-export class UserService {
+class UserService {
     static async findOrCreateUser(phoneNumber: string, name: string): Promise<{ id: string }> {
         try {
             // Check if user exists
@@ -22,3 +22,5 @@ export class UserService {
         }
     }
 }
+
+export default UserService;

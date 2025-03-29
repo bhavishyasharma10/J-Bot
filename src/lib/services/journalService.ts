@@ -2,7 +2,7 @@ import pool from '@/config/database';
 import logger from '@/config/logger';
 import { JournalEntry } from '../types/JournalEntry';
 
-export class JournalService {
+class JournalService {
     static async saveJournalEntry(entry: JournalEntry): Promise<void> {
         try {
             const { userId, type, content, tags } = entry;
@@ -49,3 +49,4 @@ export class JournalService {
     }
 }
 
+export default JournalService;

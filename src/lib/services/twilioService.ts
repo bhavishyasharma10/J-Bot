@@ -19,7 +19,7 @@ if (!accountSid || !authToken) {
 
 const client = twilio(accountSid, authToken);
 
-export class TwilioService {
+class TwilioService {
     static async sendMessage(to: string, text: string): Promise<void> {
         try {
             await client.messages.create({
@@ -34,3 +34,5 @@ export class TwilioService {
         }
     }
 }
+
+export default TwilioService;
