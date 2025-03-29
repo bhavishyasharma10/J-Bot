@@ -21,6 +21,29 @@ class UserService {
             throw error;
         }
     }
+
+    static async isNewUser(userId: string): Promise<boolean> {
+        try {
+            const [rows]: any = await pool.execute(
+                "SELECT created_at FROM Users WHERE id = ?",
+                [userId]
+            );
+
+            if (rows.length === 0) {
+                return false;
+            }
+
+            const createdAt = new Date(rows[0].created_at);
+            const now = new Date();
+            const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+
+            // Consider a user new if they were created in the last hour
+            return hoursSinceCreation < 1;
+        } catch (error) {
+            logger.error(`❌ Error checking if user is new: ${error}`);
+            return false;
+        }
+    }
 }
 
 export default UserService;
