@@ -6,13 +6,13 @@
   "engines": {
     "node": "22.x"
   },
-"scripts": {
-  "start": "next start",
-  "dev": "next dev",
-  "build": "next build",
-  "test": "jest",
-  "db:setup": "ts-node src/config/setup.ts"
-},
+  "scripts": {
+    "start": "next start",
+    "dev": "next dev",
+    "build": "next build",
+    "test": "jest",
+    "db:setup": "ts-node src/config/setup.ts"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -20,6 +20,7 @@
     "helmet": "^7.1.0",
     "mysql2": "^3.14.0",
     "next": "^15.2.4",
+    "openai": "^4.90.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "twilio": "^5.5.1",

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import MessageController from '@/controllers/messageController';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { MessageController } from '@/controllers/messageController';
 
 export async function POST(request: Request) {
   try {
