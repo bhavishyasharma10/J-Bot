@@ -19,6 +19,8 @@ class GeminiService {
 
             const cleanedResponse = response.replace(/```json|```/g, "").trim();
             logger.info("Cleaned Gemini response:", cleanedResponse);
+            logger.info(cleanedResponse);
+            
             // Step 3: Ensure valid JSON format
             const aiOutput: AIResponse = JSON.parse(cleanedResponse);
 

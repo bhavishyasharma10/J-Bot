@@ -1,6 +1,6 @@
 import pool from "@/config/database";
 import logger from "@/config/logger";
-import { Task } from "../types/Task";
+import { IHandleTask, Task } from "../types/Task";
 
 class TaskService {
     /**
@@ -62,34 +62,36 @@ class TaskService {
     /**
      * Handles a task command from AIService.
      */
-    static async handleTaskCommand(userId: string, data: { action: string; category?: "work" | "personal" | "family"; content?: string; taskId?: string; rawInputId: string }): Promise<string> {
+    static async handleTaskCommand(userId: string, data: IHandleTask, rawInputId: string): Promise<string> {
         try {
             switch (data.action) {
-                case "add":
+                case "add": {
                     if (!data.content || !data.category) return "⚠️ Missing task content or category.";
                     
                     const newTask: Task = {
                         userId,
                         category: data.category,
                         content: data.content,
-                        status: "pending",
-                        rawInputId: data.rawInputId,
+                        status: data.status,
+                        rawInputId: rawInputId,
                     };
                     await this.addTask(newTask);
                     return `📝 Task added under ${data.category}!`;
+                }
 
-                case "complete":
-                    if (!data.taskId) return "⚠️ Missing task ID.";
-                    await this.completeTask(userId, data.taskId);
-                    return "✅ Task marked as completed!";
+                // case "complete":
+                //     if (!data.taskId) return "⚠️ Missing task ID.";
+                //     await this.completeTask(userId, data.taskId);
+                //     return "✅ Task marked as completed!";
 
-                case "list":
+                case "list":{
                     const tasks = await this.listTasks(userId, data.category);
                     if (tasks.length === 0) return "📋 No pending tasks!";
                     return tasks.map((task: any) => `- ${task.content} [${task.category || "N/A"}]`).join("\n");
+                }
 
                 default:
-                    return "⚠️ Invalid task command.";
+                    return `⚠️ Invalid task command. ${data.action} is not recognized.`;
             }
         } catch (error) {
             return `❌ ${error}`;

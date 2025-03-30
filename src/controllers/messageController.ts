@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import logger from "@/config/logger";
 import { JournalService, RawUserInputService, ReminderService, TaskService, TwilioService, UserService, AIService } from "@/lib/services/Index";
+import { IHandleTask } from "@/lib/types/Task";
 
 const INTRO_MESSAGE = `👋 Welcome to JBot! I'm your AI-powered personal assistant for organizing thoughts and tasks.
 
@@ -66,7 +67,7 @@ export class MessageController {
             // 4️⃣ Handle multiple detected actions
             for (const action of aiResponse.actions) {
                 switch (action.type) {
-                    case "journal":
+                    case "journal":{
                         const newEntry = {
                             userId,
                             type: action.data.type,
@@ -76,22 +77,26 @@ export class MessageController {
                         await JournalService.saveJournalEntry(newEntry);
                         responses.push(`📝 Your ${action.data.type} has been saved successfully!\nContent: ${action.data.content}`);
                         break;
+                    }
 
                     case "reminder":
                         await ReminderService.createReminder(userId, action.data.text, action.data.time, rawInputId);
                         responses.push(`⏰ Reminder set successfully!\nTask: ${action.data.text}\nTime: ${action.data.time}`);
                         break;
 
-                    case "task":
-                        const taskResponse = await TaskService.handleTaskCommand(userId, {
+                    case "task": {
+                        const taskCommand: IHandleTask = {
                             action: action.data.action,
                             category: action.data.category,
+                            status: action.data.status,
                             content: action.data.content,
-                            taskId: action.data.taskId,
                             rawInputId,
-                        });
+                            userId,
+                        }
+                        const taskResponse = await TaskService.handleTaskCommand(userId, taskCommand, rawInputId);
                         responses.push(taskResponse);
                         break;
+                    }
 
                     default:
                         responses.push(`🤖 I'm not sure how to help with that. Here are some things I can do:\n\n${INTRO_MESSAGE}`);

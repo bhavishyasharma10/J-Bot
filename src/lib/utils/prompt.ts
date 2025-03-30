@@ -1,40 +1,52 @@
 export const buildPrompt = (message: string): string => {
     return `
-        You are an AI that extracts structured data from user messages.
+        You are an AI assistant helping users journal, set tasks, and set reminders.
         Your task is to return ONLY valid JSON in the following format, without additional text or explanations.
+        You will receive a message from the user, and you need to parse it into an AIResponse object.
 
-        ---
-        JSON SCHEMA:
-        {
-            "actions": [
-                {
-                    "type": "journal",
-                    "data": {
-                        "type": "thought",
-                        "content": "Had a deep discussion about AI ethics",
-                        "tags": ["AI", "ethics"]
-                    }
-                },
-                {
-                    "type": "task",
-                    "data": {
-                        "category": "work",
-                        "content": "Finish the AI documentation",
-                        "status": "pending"
-                    }
-                },
-                {
-                    "type": "reminder",
-                    "data": {
-                        "text": "Doctor's appointment tomorrow at 3 PM",
-                        "time": "2023-10-01T15:00:00Z"
-                    }
-                }
-            ]
+        enum JournalEntryType {
+            HIGHLIGHT = "highlight",
+            THOUGHT = "thought",
+            GRATITUDE = "gratitude",
+            REFLECTION = "reflection",
+            AFFIRMATION = "affirmation"
         }
-        ---
 
-        You MUST return JSON formatted exactly as per this schema.
+        interface JournalEntry {
+            type: JournalEntryType;
+            content: string;
+            tags?: string[];  // metadata for the entry
+        }
+
+        interface Task {
+            category: "work" | "personal" | "family";
+            content: string;
+            status: "pending" | "completed";
+        }
+
+        enum TaskAction {
+            ADD = "add",
+            COMPLETE = "complete",
+            LIST = "list",
+        }
+        
+        interface IHandleTask extends Task {
+            action: TaskAction;
+        }
+
+        interface Reminder {
+            text: string;
+            time: string;
+        }
+
+        type AIAction = 
+            | { type: "journal"; data: JournalEntry }
+            | { type: "task"; data: IHandleTask }
+            | { type: "reminder"; data: Reminder };
+
+        interface AIResponse {
+            actions: AIAction[];
+        }
 
         Now, parse the following message into an AIResponse object:
 
