@@ -5,7 +5,7 @@ class JournalService {
     static async saveJournalEntry(entry: { userId: string, type: string, content: string, tags: any }): Promise<void> {
         try {
             await JournalEntry.create({
-                user_id: entry.userId,
+                user_id: parseInt(entry.userId),
                 type: entry.type,
                 content: entry.content,
                 tags: entry.tags

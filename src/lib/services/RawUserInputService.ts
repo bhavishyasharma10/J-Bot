@@ -5,7 +5,7 @@ class RawUserInputService {
     static async saveRawInput(userId: string, rawText: string, metadata: object | null = null): Promise<string> {
         try {
             const rawInput = await RawUserInput.create({
-                user_id: userId,
+                user_id: parseInt(userId),
                 raw_text: rawText,
                 metadata: metadata,
                 processed: false
