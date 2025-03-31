@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "@types/sequelize": "^4.28.20",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -24,6 +25,7 @@
     "openai": "^4.90.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sequelize": "^6.37.7",
     "twilio": "^5.5.1",
     "winston": "^3.11.0"
   },
