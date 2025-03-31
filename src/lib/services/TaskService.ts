@@ -58,8 +58,7 @@ class TaskService {
             }
 
             return await Task.findAll({
-                where,
-                attributes: ['id', 'category', 'content']
+                where
             });
         } catch (error) {
             logger.error(`❌ Error retrieving tasks: ${error}`);
