@@ -8,11 +8,7 @@ export interface Task {
     createdAt?: Date;
 }
 
-export enum TaskAction {
-    ADD = "add",
-    COMPLETE = "complete",
-    LIST = "list",
-}
+type TaskAction = "add" | "complete" | "list";
 export interface IHandleTask extends Task {
     action: TaskAction;
 }

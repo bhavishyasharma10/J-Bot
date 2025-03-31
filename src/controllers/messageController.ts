@@ -45,11 +45,8 @@ export class MessageController {
         try {
             // 1️⃣ Extract phone number and find/create user
             const phoneNumber = from.replace("whatsapp:", "").trim();
-            const user = await UserService.findOrCreateUser(phoneNumber, name);
-            const userId = user.id;
+            const { id: userId, isNewUser } = await UserService.findOrCreateUser(phoneNumber, name);
 
-            // Check if this is a new user
-            const isNewUser = await UserService.isNewUser(userId);
             if (isNewUser) {
                 logger.info(`📩 New user detected: ${phoneNumber}`);
                 await TwilioService.sendMessage(from, INTRO_MESSAGE);

@@ -1,19 +1,21 @@
-import pool from "@/config/database";
 import logger from "@/config/logger";
-import { IHandleTask, Task } from "../types/Task";
+import { Task } from '@/lib/models';
+import { IHandleTask } from "../types/Task";
 
 class TaskService {
     /**
      * Saves a new task.
      */
-    static async addTask(task: Task): Promise<void> {
+    static async addTask(task: { userId: string, category: string, content: string, rawInputId: string }): Promise<void> {
         try {
-            const { userId, category, content, rawInputId } = task;
-            const query = `INSERT INTO tasks (user_id, category, content, status, raw_input_id) VALUES (?, ?, ?, ?, ?)`;
-            const values = [userId, category, content, "pending", rawInputId];
-
-            await pool.execute(query, values);
-            logger.info(`✅ Task added for user ${userId} (Category: ${category})`);
+            await Task.create({
+                user_id: parseInt(task.userId),
+                category: task.category as "work" | "personal" | "family",
+                content: task.content,
+                status: 'pending',
+                raw_input_id: parseInt(task.rawInputId)
+            });
+            logger.info(`✅ Task added for user ${task.userId} (Category: ${task.category})`);
         } catch (error) {
             logger.error(`❌ Error adding task: ${error}`);
             throw error;
@@ -25,11 +27,12 @@ class TaskService {
      */
     static async completeTask(userId: string, taskId: string): Promise<void> {
         try {
-            const query = `UPDATE tasks SET status = 'completed' WHERE id = ? AND user_id = ?`;
-            const values = [taskId, userId];
+            const [updatedRows] = await Task.update(
+                { status: 'completed' },
+                { where: { id: taskId, user_id: userId } }
+            );
 
-            const [result]: any = await pool.execute(query, values);
-            if (result.affectedRows === 0) {
+            if (updatedRows === 0) {
                 throw new Error("⚠️ Task not found!");
             }
 
@@ -43,16 +46,21 @@ class TaskService {
     /**
      * Lists all pending tasks for a user, optionally filtered by category.
      */
-    static async listTasks(userId: string, category?: "work" | "personal" | "family"): Promise<any[]> {
+    static async listTasks(userId: string, category?: "work" | "personal" | "family"): Promise<Task[]> {
         try {
-            const query = category
-                ? `SELECT id, content FROM tasks WHERE user_id = ? AND category = ? AND status = 'pending'`
-                : `SELECT id, category, content FROM tasks WHERE user_id = ? AND status = 'pending'`;
+            const where: any = {
+                user_id: userId,
+                status: 'pending'
+            };
 
-            const values = category ? [userId, category] : [userId];
+            if (category) {
+                where.category = category;
+            }
 
-            const [rows]: any = await pool.execute(query, values);
-            return rows;
+            return await Task.findAll({
+                where,
+                attributes: ['id', 'category', 'content']
+            });
         } catch (error) {
             logger.error(`❌ Error retrieving tasks: ${error}`);
             throw error;
@@ -68,26 +76,21 @@ class TaskService {
                 case "add": {
                     if (!data.content || !data.category) return "⚠️ Missing task content or category.";
                     
-                    const newTask: Task = {
+                    await this.addTask({
                         userId,
                         category: data.category,
                         content: data.content,
-                        status: data.status,
-                        rawInputId: rawInputId,
-                    };
-                    await this.addTask(newTask);
+                        rawInputId
+                    });
                     return `📝 Task added under ${data.category}!`;
                 }
 
-                // case "complete":
-                //     if (!data.taskId) return "⚠️ Missing task ID.";
-                //     await this.completeTask(userId, data.taskId);
-                //     return "✅ Task marked as completed!";
-
-                case "list":{
+                case "list": {
                     const tasks = await this.listTasks(userId, data.category);
                     if (tasks.length === 0) return "📋 No pending tasks!";
-                    return tasks.map((task: any) => `- ${task.content} [${task.category || "N/A"}]`).join("\n");
+                    const title = data.category ? "📋 Your pending " + data.category + " tasks:" : "📋 Your pending tasks:";
+                    const taskList = tasks.map(task => "- " + task.content + " [" + (task.category || "N/A") + "]").join("\n");
+                    return title + "\n" + taskList;
                 }
 
                 default:

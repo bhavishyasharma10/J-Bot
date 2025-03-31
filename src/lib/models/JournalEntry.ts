@@ -13,9 +13,7 @@ class JournalEntry extends Model<JournalEntryAttributes> implements JournalEntry
     public readonly updated_at!: Date;
 
     // Define associations
-    public static associations: JournalEntryAssociations = {
-        user: JournalEntry.belongsTo(User, { foreignKey: 'user_id' })
-    };
+    public static associations: JournalEntryAssociations;
 }
 
 JournalEntry.init({

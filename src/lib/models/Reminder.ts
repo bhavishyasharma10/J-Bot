@@ -1,7 +1,6 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '@/config/database';
 import { ReminderAttributes, ReminderAssociations } from '@/lib/types/models';
-import User from './User';
 
 class Reminder extends Model<ReminderAttributes> implements ReminderAttributes {
     public id!: number;
@@ -14,9 +13,7 @@ class Reminder extends Model<ReminderAttributes> implements ReminderAttributes {
     public readonly updated_at!: Date;
 
     // Define associations
-    public static associations: ReminderAssociations = {
-        user: Reminder.belongsTo(User, { foreignKey: 'user_id' })
-    };
+    public static associations: ReminderAssociations;
 }
 
 Reminder.init({
@@ -27,11 +24,6 @@ Reminder.init({
     },
     user_id: {
         type: DataTypes.BIGINT,
-        allowNull: false,
-        references: {
-            model: User,
-            key: 'id'
-        }
     },
     reminder_text: {
         type: DataTypes.TEXT,

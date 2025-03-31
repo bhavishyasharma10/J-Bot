@@ -1,10 +1,4 @@
-export enum JournalEntryType {
-    HIGHLIGHT = "highlight",
-    THOUGHT = "thought",
-    GRATITUDE = "gratitude",
-    REFLECTION = "reflection",
-    AFFIRMATION = "affirmation"
-}
+type JournalEntryType = "highlight" | "thought" | "gratitude" | "reflection" | "affirmation";
 
 export interface JournalEntry {
     id?: string;

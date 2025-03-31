@@ -1,55 +1,55 @@
 import { Model, Association } from 'sequelize';
 
 export interface UserAttributes {
-    id: number;
-    google_id: string;
-    whatsapp_number: string;
-    email: string;
+    id?: number;
+    google_id?: string;
+    whatsapp_number?: string;
+    email?: string;
     name: string;
-    profile_photo: string;
-    created_at: Date;
+    profile_photo?: string;
+    created_at?: Date;
 }
 
 export interface ReminderAttributes {
-    id: number;
+    id?: number;
     user_id: number;
     reminder_text: string;
     reminder_time: Date;
-    target_id: number;
+    target_id?: number;
     status: 'pending' | 'triggered';
-    created_at: Date;
-    updated_at: Date;
+    created_at?: Date;
+    updated_at?: Date;
 }
 
 export interface JournalEntryAttributes {
-    id: number;
+    id?: number;
     user_id: number;
     type: string;
     content: string;
     tags: any;
-    created_at: Date;
-    updated_at: Date;
+    created_at?: Date;
+    updated_at?: Date;
 }
 
 export interface TaskAttributes {
-    id: number;
+    id?: number;
     user_id: number;
     category: 'work' | 'personal' | 'family';
     content: string;
     status: 'pending' | 'completed';
     raw_input_id: number;
-    created_at: Date;
-    updated_at: Date;
+    created_at?: Date;
+    updated_at?: Date;
 }
 
 export interface RawUserInputAttributes {
-    id: number;
+    id?: number;
     user_id: number;
     raw_text: string;
     metadata: any;
     processed: boolean;
-    created_at: Date;
-    updated_at: Date;
+    created_at?: Date;
+    updated_at?: Date;
 }
 
 export interface UserAssociations {

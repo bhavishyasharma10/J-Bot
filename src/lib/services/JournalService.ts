@@ -1,36 +1,35 @@
-import pool from '@/config/database';
 import logger from '@/config/logger';
-import { JournalEntry } from '../types/JournalEntry';
+import { JournalEntry } from '@/lib/models';
 
 class JournalService {
-    static async saveJournalEntry(entry: JournalEntry): Promise<void> {
+    static async saveJournalEntry(entry: { userId: string, type: string, content: string, tags: any }): Promise<void> {
         try {
-            const { userId, type, content, tags } = entry;
-            const query = `INSERT INTO JournalEntries (user_id, type, content, tags) VALUES (?, ?, ?, ?)`;
-            const values = [userId, type, content, JSON.stringify(tags)];
-
-            await pool.execute(query, values);
-            logger.info(`✅ Journal entry saved for user ${userId} (Type: ${type})`);
+            await JournalEntry.create({
+                user_id: entry.userId,
+                type: entry.type,
+                content: entry.content,
+                tags: entry.tags
+            });
+            logger.info(`✅ Journal entry saved for user ${entry.userId} (Type: ${entry.type})`);
         } catch (error) {
             logger.error(`❌ Error saving journal entry: ${error}`);
             throw error;
         }
     }
 
-    static async getJournalEntries(userId: string, type?: string): Promise<any[]> {
+    static async getJournalEntries(userId: string, type?: string): Promise<JournalEntry[]> {
         try {
-            let query = `SELECT * FROM JournalEntries WHERE user_id = ?`;
-            const values: any[] = [userId];
-
+            const where: any = { user_id: userId };
             if (type) {
-                query += ` AND type = ?`;
-                values.push(type);
+                where.type = type;
             }
 
-            query += ` ORDER BY created_at DESC`;
-            const [rows] = await pool.query(query, values);
+            const entries = await JournalEntry.findAll({
+                where,
+                order: [['created_at', 'DESC']]
+            });
 
-            return rows as any[];
+            return entries;
         } catch (error) {
             logger.error(`❌ Error fetching journal entries: ${error}`);
             throw error;
@@ -39,8 +38,9 @@ class JournalService {
 
     static async deleteJournalEntry(entryId: string): Promise<void> {
         try {
-            const query = `DELETE FROM JournalEntries WHERE id = ?`;
-            await pool.execute(query, [entryId]);
+            await JournalEntry.destroy({
+                where: { id: entryId }
+            });
             logger.info(`✅ Deleted journal entry ${entryId}`);
         } catch (error) {
             logger.error(`❌ Error deleting journal entry: ${error}`);
