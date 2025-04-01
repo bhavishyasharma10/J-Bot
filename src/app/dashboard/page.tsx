@@ -212,7 +212,7 @@ function DashboardContent(): React.ReactElement {
       console.error('Error deleting journal entry:', error);
     }
   };
-  console.log(editingJournal);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
