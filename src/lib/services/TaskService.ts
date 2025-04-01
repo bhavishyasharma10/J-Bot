@@ -2,6 +2,7 @@ import logger from "@/config/logger";
 import { Task } from '@/lib/models';
 import { IHandleTask } from "../types/Task";
 import { Op } from 'sequelize';
+import { TaskAttributes } from "../types/models";
 
 class TaskService {
     /**
@@ -19,6 +20,26 @@ class TaskService {
             logger.info(`✅ Task added for user ${task.userId} (Category: ${task.category})`);
         } catch (error) {
             logger.error(`❌ Error adding task: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Toggles a task's status between completed and pending.
+     */
+    static async toggleTaskStatus(taskId: string): Promise<void> {
+        try {
+            const task = await Task.findByPk(taskId);
+            if (!task) {
+                throw new Error("⚠️ Task not found!");
+            }
+
+            const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+            await task.update({ status: newStatus });
+
+            logger.info(`✅ Task ${taskId} status toggled to ${newStatus}`);
+        } catch (error) {
+            logger.error(`❌ Error toggling task status: ${error}`);
             throw error;
         }
     }
@@ -45,13 +66,12 @@ class TaskService {
     }
 
     /**
-     * Lists all pending tasks for a user, optionally filtered by category and date.
+     * Lists all tasks for a user, optionally filtered by category and date.
      */
-    static async listTasks(userId: string, category?: "work" | "personal" | "family", date?: string | null): Promise<Task[]> {
+    static async listTasks(userId: string, category?: "work" | "personal" | "family", date?: string | null): Promise<TaskAttributes[]> {
         try {
             const where: any = {
-                user_id: parseInt(userId),
-                status: 'pending'
+                user_id: parseInt(userId)
             };
 
             if (category) {
@@ -112,6 +132,47 @@ class TaskService {
             }
         } catch (error) {
             return `❌ ${error}`;
+        }
+    }
+
+    static async handleTask(data: IHandleTask, userId: string): Promise<string> {
+        try {
+            switch (data.action) {
+                case "add": {
+                    if (!data.content || !data.category) {
+                        throw new Error("⚠️ Missing required fields!");
+                    }
+                    await this.addTask({
+                        userId,
+                        category: data.category,
+                        content: data.content,
+                        rawInputId: data.rawInputId || '0'
+                    });
+                    return "✅ Task added successfully!";
+                }
+
+                case "complete": {
+                    if (!data.id) {
+                        throw new Error("⚠️ Task ID is required!");
+                    }
+                    await this.toggleTaskStatus(data.id);
+                    return "✅ Task completed!";
+                }
+
+                case "list": {
+                    const tasks = await this.listTasks(userId, data.category);
+                    if (tasks.length === 0) return "📋 No pending tasks!";
+                    const title = data.category ? "📋 Your pending " + data.category + " tasks:" : "📋 Your pending tasks:";
+                    const taskList = tasks.map(task => "- " + task.content + " [" + (task.category || "N/A") + "]").join("\n");
+                    return title + "\n" + taskList;
+                }
+
+                default:
+                    throw new Error("⚠️ Invalid action!");
+            }
+        } catch (error) {
+            logger.error(`❌ Error handling task: ${error}`);
+            throw error;
         }
     }
 }

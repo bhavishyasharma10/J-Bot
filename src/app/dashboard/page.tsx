@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { JournalEntryAttributes, ReminderAttributes, TaskAttributes } from '@/lib/types/models';
 import { fetchUserReminders, addReminder, deleteReminder, toggleReminder } from '@/app/actions/reminders';
 import { fetchUserJournalEntries } from '@/app/actions/journal';
-import { fetchUserTasks } from '@/app/actions/tasks';
+import { fetchUserTasks, toggleTask } from '@/app/actions/tasks';
 
 interface UserData {
   id: string;
@@ -100,6 +100,18 @@ function DashboardContent(): React.ReactElement {
     }
   };
 
+  const handleToggleTask = async (task: TaskAttributes) => {
+    try {
+      if (!task.id) return;
+      await toggleTask(task.id.toString());
+      setTasks(tasks.map(t => 
+        t.id === task.id ? { ...t, status: t.status === 'completed' ? 'pending' : 'completed' } : t
+      ));
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -174,8 +186,25 @@ function DashboardContent(): React.ReactElement {
                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
                           {task.category}
                         </span>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          task.status === 'completed' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {task.status}
+                        </span>
                       </div>
                     </div>
+                    <button
+                      onClick={() => handleToggleTask(task)}
+                      className={`p-2 rounded-full ${
+                        task.status === 'completed'
+                          ? 'bg-green-100 text-green-600'
+                          : 'bg-gray-100 text-gray-600'
+                      } hover:bg-opacity-80`}
+                    >
+                      ✓
+                    </button>
                   </li>
                 ))}
               </ul>

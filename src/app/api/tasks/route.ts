@@ -18,3 +18,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const { id } = await request.json();
+    await TaskService.toggleTaskStatus(id);
+    return NextResponse.json({ message: 'Task status updated successfully' });
+  } catch (error) {
+    console.error('Error updating task:', error);
+    return NextResponse.json({ error: 'Failed to update task' }, { status: 500 });
+  }
+}
