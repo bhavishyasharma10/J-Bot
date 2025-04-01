@@ -36,11 +36,25 @@ class ReminderService {
         }
     }
 
+    static async getUserReminders(userId: string): Promise<Reminder[]> {
+        try {
+            return await Reminder.findAll({
+                where: {
+                    user_id: parseInt(userId)
+                },
+                order: [['reminder_time', 'ASC']]
+            });
+        } catch (error) {
+            logger.error(`❌ Error fetching user reminders: ${error}`);
+            throw error;
+        }
+    }
+
     static async markReminderAsTriggered(reminderId: string): Promise<void> {
         try {
             await Reminder.update(
                 { status: 'triggered' },
-                { where: { id: reminderId } }
+                { where: { id: parseInt(reminderId) } }
             );
             logger.info(`✅ Reminder ${reminderId} marked as triggered`);
         } catch (error) {
@@ -52,9 +66,9 @@ class ReminderService {
     static async deleteReminder(reminderId: string): Promise<void> {
         try {
             await Reminder.destroy({
-                where: { id: reminderId }
+                where: { id: parseInt(reminderId) }
             });
-            logger.info(`✅ Deleted reminder ${reminderId}`);
+            logger.info(`✅ Reminder ${reminderId} deleted`);
         } catch (error) {
             logger.error(`❌ Error deleting reminder: ${error}`);
             throw error;
