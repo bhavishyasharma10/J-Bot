@@ -1,6 +1,7 @@
 import logger from '@/config/logger';
 import { Reminder } from '@/lib/models';
 import { Op } from 'sequelize';
+import { ReminderAttributes } from '../types/models';
 
 class ReminderService {
     static async createReminder(userId: string, reminderText: string, reminderTime: string, targetId: string | null = null): Promise<void> {
@@ -19,7 +20,7 @@ class ReminderService {
         }
     }
 
-    static async getPendingReminders(): Promise<Reminder[]> {
+    static async getPendingReminders(): Promise<ReminderAttributes[]> {
         try {
             return await Reminder.findAll({
                 where: {
@@ -36,12 +37,25 @@ class ReminderService {
         }
     }
 
-    static async getUserReminders(userId: string): Promise<Reminder[]> {
+    static async getUserReminders(userId: string, date?: string | null): Promise<ReminderAttributes[]> {
         try {
+            const where: any = {
+                user_id: parseInt(userId)
+            };
+
+            if (date) {
+                const startDate = new Date(date);
+                startDate.setHours(0, 0, 0, 0);
+                const endDate = new Date(date);
+                endDate.setHours(23, 59, 59, 999);
+                
+                where.reminder_time = {
+                    [Op.between]: [startDate, endDate]
+                };
+            }
+
             return await Reminder.findAll({
-                where: {
-                    user_id: parseInt(userId)
-                },
+                where,
                 order: [['reminder_time', 'ASC']]
             });
         } catch (error) {

@@ -1,5 +1,6 @@
 import logger from '@/config/logger';
 import { JournalEntry } from '@/lib/models';
+import { Op } from 'sequelize';
 
 class JournalService {
     static async saveJournalEntry(entry: { userId: string, type: string, content: string, tags: any }): Promise<void> {
@@ -17,11 +18,21 @@ class JournalService {
         }
     }
 
-    static async getJournalEntries(userId: string, type?: string): Promise<JournalEntry[]> {
+    static async getJournalEntries(userId: string, type?: string, date?: string | null): Promise<JournalEntry[]> {
         try {
             const where: any = { user_id: userId };
             if (type) {
                 where.type = type;
+            }
+            if (date) {
+                const startDate = new Date(date);
+                startDate.setHours(0, 0, 0, 0);
+                const endDate = new Date(date);
+                endDate.setHours(23, 59, 59, 999);
+                
+                where.created_at = {
+                    [Op.between]: [startDate, endDate]
+                };
             }
 
             const entries = await JournalEntry.findAll({

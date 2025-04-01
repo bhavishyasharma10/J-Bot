@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Task } from '@/lib/types/Task';
-import { JournalEntry } from '@/lib/types/JournalEntry';
-import { ReminderAttributes } from '@/lib/types/models';
+import { JournalEntryAttributes, ReminderAttributes, TaskAttributes } from '@/lib/types/models';
 import { fetchUserReminders, addReminder, deleteReminder, toggleReminder } from '@/app/actions/reminders';
+import { fetchUserJournalEntries } from '@/app/actions/journal';
+import { fetchUserTasks } from '@/app/actions/tasks';
 
 interface UserData {
   id: string;
@@ -19,27 +19,26 @@ interface UserData {
 function DashboardContent(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [tasks, setTasks] = useState<TaskAttributes[]>([]);
+  const [journalEntries, setJournalEntries] = useState<JournalEntryAttributes[]>([]);
   const [reminders, setReminders] = useState<ReminderAttributes[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddReminder, setShowAddReminder] = useState(false);
   const [newReminder, setNewReminder] = useState({ text: '', time: '' });
 
-  const fetchData = useCallback(async (id: string) => {
+  const fetchData = useCallback(async (id: string, date: string) => {
     try {
       // Fetch tasks
-      const tasksResponse = await fetch(`/api/tasks?userId=${id}`);
-      const tasksData = await tasksResponse.json();
-      setTasks(tasksData as Task[]);
+      const tasksData = await fetchUserTasks(id, date);
+      setTasks(tasksData);
 
       // Fetch journal entries
-      const journalResponse = await fetch(`/api/journal?userId=${id}`);
-      const journalData = await journalResponse.json();
-      setJournalEntries(journalData as JournalEntry[]);
+      const journalData = await fetchUserJournalEntries(id, date);
+      setJournalEntries(journalData);
 
       // Fetch reminders
-      const remindersData = await fetchUserReminders(id);
+      const remindersData = await fetchUserReminders(id, date);
       setReminders(remindersData);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -48,10 +47,31 @@ function DashboardContent(): React.ReactElement {
     }
   }, []);
 
+  // Parse user data from URL and fetch data
+  useEffect(() => {
+    const userDataStr = searchParams.get('userData');
+    if (!userDataStr) {
+      router.push('/');
+      return;
+    }
+
+    try {
+      const data = JSON.parse(decodeURIComponent(userDataStr)) as UserData;
+      fetchData(data.id, selectedDate);
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      router.push('/');
+    }
+  }, [searchParams, fetchData, router, selectedDate]);
+
+  const handleDateChange = (newDate: string) => {
+    setSelectedDate(newDate);
+  };
+
   const handleAddReminder = async (userId: string) => {
     try {
       await addReminder(userId, newReminder.text, newReminder.time);
-      const updatedReminders = await fetchUserReminders(userId);
+      const updatedReminders = await fetchUserReminders(userId, selectedDate);
       setReminders(updatedReminders);
       setShowAddReminder(false);
       setNewReminder({ text: '', time: '' });
@@ -80,23 +100,6 @@ function DashboardContent(): React.ReactElement {
     }
   };
 
-  // Parse user data from URL
-  useEffect(() => {
-    const userDataStr = searchParams.get('userData');
-    if (!userDataStr) {
-      router.push('/');
-      return;
-    }
-
-    try {
-      const data = JSON.parse(decodeURIComponent(userDataStr)) as UserData;
-      fetchData(data.id);
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      router.push('/');
-    }
-  }, [searchParams, fetchData, router]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -109,21 +112,53 @@ function DashboardContent(): React.ReactElement {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <button
-            onClick={() => router.push('/')}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-          >
-            Logout
-          </button>
+          <h1 className="text-3xl font-bold">Daily Journal</h1>
+          <div className="flex items-center gap-4">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="px-4 py-2 border rounded-lg"
+            />
+            <button
+              onClick={() => router.push('/')}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Journal Entries Section */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Journal Entries</h2>
+            {journalEntries.length === 0 ? (
+              <p className="text-gray-500">No journal entries for this day</p>
+            ) : (
+              <ul className="space-y-3">
+                {journalEntries.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className="p-3 bg-gray-50 rounded-lg"
+                  >
+                    <p className="text-gray-800">{entry.content}</p>
+                    <div className="flex gap-2 mt-2">
+                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                        {entry.type}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           {/* Tasks Section */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4">Tasks</h2>
             {tasks.length === 0 ? (
-              <p className="text-gray-500">No tasks found</p>
+              <p className="text-gray-500">No tasks for this day</p>
             ) : (
               <ul className="space-y-3">
                 {tasks.map((task) => (
@@ -132,61 +167,18 @@ function DashboardContent(): React.ReactElement {
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex flex-col">
-                      <span className={`${task.status === 'completed' ? 'line-through text-gray-500' : ''}`}>
+                      <span className={task.status === 'completed' ? 'line-through text-gray-500' : ''}>
                         {task.content}
                       </span>
                       <div className="flex gap-2 mt-1">
                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
                           {task.category}
                         </span>
-                        {task.createdAt && (
-                          <span className="text-xs text-gray-500">
-                            Created: {new Date(task.createdAt).toLocaleDateString()}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
-
-          {/* Journal Entries Section */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Journal Entries</h2>
-            {journalEntries.length === 0 ? (
-              <p className="text-gray-500">No journal entries found</p>
-            ) : (
-              <div className="space-y-4">
-                {journalEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="p-4 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded">
-                        {entry.type}
-                      </span>
-                      {entry.createdAt && (
-                        <span className="text-xs text-gray-500">
-                          {new Date(entry.createdAt).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-700">{entry.content}</p>
-                    {entry.tags && entry.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {entry.tags.map((tag) => (
-                          <span key={tag} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
             )}
           </div>
 
@@ -247,7 +239,7 @@ function DashboardContent(): React.ReactElement {
             )}
 
             {reminders.length === 0 ? (
-              <p className="text-gray-500">No reminders set</p>
+              <p className="text-gray-500">No reminders for this day</p>
             ) : (
               <ul className="space-y-3">
                 {reminders.map((reminder) => (
@@ -261,7 +253,7 @@ function DashboardContent(): React.ReactElement {
                       </span>
                       <div className="flex gap-2 mt-1">
                         <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded">
-                          Due: {new Date(reminder.reminder_time).toLocaleDateString()} {new Date(reminder.reminder_time).toLocaleTimeString()}
+                          Due: {new Date(reminder.reminder_time || '').toLocaleDateString()} {new Date(reminder.reminder_time || '').toLocaleTimeString()}
                         </span>
                         <span className={`text-xs px-2 py-1 rounded ${
                           reminder.status === 'triggered' 

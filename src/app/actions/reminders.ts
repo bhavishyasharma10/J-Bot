@@ -1,7 +1,13 @@
 import { ReminderAttributes } from '@/lib/types/models';
 
-export async function fetchUserReminders(userId: string): Promise<ReminderAttributes[]> {
-  const response = await fetch(`/api/reminders?userId=${userId}`);
+export async function fetchUserReminders(userId: string, date?: string): Promise<ReminderAttributes[]> {
+  const url = new URL('/api/reminders', window.location.origin);
+  url.searchParams.append('userId', userId);
+  if (date) {
+    url.searchParams.append('date', date);
+  }
+
+  const response = await fetch(url);
   if (!response.ok) throw new Error('Failed to fetch reminders');
   const data = await response.json();
   return data as ReminderAttributes[];

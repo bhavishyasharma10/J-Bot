@@ -4,13 +4,14 @@ import ReminderService from '@/lib/services/ReminderService';
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const userId = searchParams.get('userId');
+  const date = searchParams.get('date');
 
   if (!userId) {
     return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
   }
 
   try {
-    const reminders = await ReminderService.getUserReminders(userId);
+    const reminders = await ReminderService.getUserReminders(userId, date || undefined);
     return NextResponse.json(reminders);
   } catch (error) {
     console.error('Error fetching reminders:', error);

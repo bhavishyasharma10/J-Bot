@@ -1,6 +1,7 @@
 import logger from "@/config/logger";
 import { Task } from '@/lib/models';
 import { IHandleTask } from "../types/Task";
+import { Op } from 'sequelize';
 
 class TaskService {
     /**
@@ -44,12 +45,12 @@ class TaskService {
     }
 
     /**
-     * Lists all pending tasks for a user, optionally filtered by category.
+     * Lists all pending tasks for a user, optionally filtered by category and date.
      */
-    static async listTasks(userId: string, category?: "work" | "personal" | "family"): Promise<Task[]> {
+    static async listTasks(userId: string, category?: "work" | "personal" | "family", date?: string | null): Promise<Task[]> {
         try {
             const where: any = {
-                user_id: userId,
+                user_id: parseInt(userId),
                 status: 'pending'
             };
 
@@ -57,11 +58,25 @@ class TaskService {
                 where.category = category;
             }
 
-            return await Task.findAll({
-                where
+            if (date) {
+                const startDate = new Date(date);
+                startDate.setHours(0, 0, 0, 0);
+                const endDate = new Date(date);
+                endDate.setHours(23, 59, 59, 999);
+                
+                where.created_at = {
+                    [Op.between]: [startDate, endDate]
+                };
+            }
+
+            const tasks = await Task.findAll({
+                where,
+                order: [['created_at', 'DESC']]
             });
+
+            return tasks;
         } catch (error) {
-            logger.error(`❌ Error retrieving tasks: ${error}`);
+            logger.error(`❌ Error listing tasks: ${error}`);
             throw error;
         }
     }
