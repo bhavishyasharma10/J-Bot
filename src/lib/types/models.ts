@@ -37,7 +37,7 @@ export interface TaskAttributes {
     category: 'work' | 'personal' | 'family';
     content: string;
     status: 'pending' | 'completed';
-    raw_input_id: number;
+    raw_input_id?: number;
     created_at?: Date;
     updated_at?: Date;
 }

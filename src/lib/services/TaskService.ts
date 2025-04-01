@@ -1,6 +1,6 @@
 import logger from "@/config/logger";
 import { Task } from '@/lib/models';
-import { IHandleTask } from "../types/Task";
+import { IHandleTask, TaskCategory } from "../types/Task";
 import { Op } from 'sequelize';
 import { TaskAttributes } from "../types/models";
 
@@ -8,14 +8,13 @@ class TaskService {
     /**
      * Saves a new task.
      */
-    static async addTask(task: { userId: string, category: string, content: string, rawInputId: string }): Promise<void> {
+    static async addTask(task: { userId: string, category: string, content: string, rawInputId?: string }): Promise<void> {
         try {
             await Task.create({
                 user_id: parseInt(task.userId),
                 category: task.category as "work" | "personal" | "family",
                 content: task.content,
                 status: 'pending',
-                raw_input_id: parseInt(task.rawInputId)
             });
             logger.info(`✅ Task added for user ${task.userId} (Category: ${task.category})`);
         } catch (error) {
@@ -68,7 +67,7 @@ class TaskService {
     /**
      * Lists all tasks for a user, optionally filtered by category and date.
      */
-    static async listTasks(userId: string, category?: "work" | "personal" | "family", date?: string | null): Promise<TaskAttributes[]> {
+    static async listTasks(userId: string, category?: TaskCategory, date?: string | null): Promise<TaskAttributes[]> {
         try {
             const where: any = {
                 user_id: parseInt(userId)
@@ -172,6 +171,46 @@ class TaskService {
             }
         } catch (error) {
             logger.error(`❌ Error handling task: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Updates an existing task.
+     */
+    static async updateTask(taskId: string, content: string, category: string): Promise<void> {
+        try {
+            const task = await Task.findByPk(taskId);
+            if (!task) {
+                throw new Error("⚠️ Task not found!");
+            }
+
+            await task.update({
+                content,
+                category: category as "work" | "personal" | "family"
+            });
+
+            logger.info(`✅ Task ${taskId} updated successfully`);
+        } catch (error) {
+            logger.error(`❌ Error updating task: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Deletes a task.
+     */
+    static async deleteTask(taskId: string): Promise<void> {
+        try {
+            const task = await Task.findByPk(taskId);
+            if (!task) {
+                throw new Error("⚠️ Task not found!");
+            }
+
+            await task.destroy();
+            logger.info(`✅ Task ${taskId} deleted successfully`);
+        } catch (error) {
+            logger.error(`❌ Error deleting task: ${error}`);
             throw error;
         }
     }

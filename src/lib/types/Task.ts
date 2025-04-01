@@ -1,14 +1,15 @@
 export interface Task {
     id?: string;
     userId: string;
-    category: "work" | "personal" | "family";
+    category: TaskCategory;
     content: string;
-    status: "pending" | "completed";
+    status: TaskStatus;
     rawInputId?: string;
     createdAt?: Date;
 }
-
-type TaskAction = "add" | "complete" | "list";
+export type TaskCategory = 'work' | 'personal' | 'family';
+export type TaskStatus = 'pending' | 'completed';
+export type TaskAction = "add" | "complete" | "list";
 export interface IHandleTask extends Task {
     action: TaskAction;
 }

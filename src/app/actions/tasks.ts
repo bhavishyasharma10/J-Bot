@@ -13,6 +13,46 @@ export async function fetchUserTasks(userId: string, date?: string): Promise<Tas
   return data;
 }
 
+export async function createTask(userId: string, content: string, category: string): Promise<void> {
+  const response = await fetch('/api/tasks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userId,
+      content,
+      category,
+    }),
+  });
+
+  if (!response.ok) throw new Error('Failed to create task');
+}
+
+export async function updateTask(taskId: string, content: string, category: string): Promise<void> {
+  const response = await fetch('/api/tasks', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: taskId,
+      content,
+      category,
+    }),
+  });
+
+  if (!response.ok) throw new Error('Failed to update task');
+}
+
+export async function deleteTask(taskId: string): Promise<void> {
+  const response = await fetch(`/api/tasks?id=${taskId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) throw new Error('Failed to delete task');
+}
+
 export async function toggleTask(taskId: string): Promise<void> {
   const response = await fetch('/api/tasks', {
     method: 'PUT',

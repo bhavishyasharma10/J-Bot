@@ -1,4 +1,4 @@
-import logger from '@/config/logger';
+import logger from "@/config/logger";
 import { JournalEntry } from '@/lib/models';
 import { Op } from 'sequelize';
 
@@ -17,10 +17,16 @@ class JournalService {
             throw error;
         }
     }
-
-    static async getJournalEntries(userId: string, type?: string, date?: string | null): Promise<JournalEntry[]> {
+    
+    /**
+     * Gets all journal entries for a user, optionally filtered by date.
+     */
+    static async getJournalEntries(userId: string, type?: string, date?: string): Promise<JournalEntry[]> {
         try {
-            const where: any = { user_id: userId };
+            const where: any = {
+                user_id: parseInt(userId)
+            };
+
             if (type) {
                 where.type = type;
             }
@@ -42,22 +48,69 @@ class JournalService {
 
             return entries;
         } catch (error) {
-            logger.error(`❌ Error fetching journal entries: ${error}`);
+            logger.error(`❌ Error getting journal entries: ${error}`);
             throw error;
         }
     }
 
-    static async deleteJournalEntry(entryId: string): Promise<void> {
+    /**
+     * Creates a new journal entry.
+     */
+    static async createEntry(userId: string, content: string, type: string): Promise<void> {
         try {
-            await JournalEntry.destroy({
-                where: { id: entryId }
+            await JournalEntry.create({
+                user_id: parseInt(userId),
+                content,
+                type: type,
             });
-            logger.info(`✅ Deleted journal entry ${entryId}`);
+            logger.info(`✅ Journal entry created for user ${userId}`);
+        } catch (error) {
+            logger.error(`❌ Error creating journal entry: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Updates an existing journal entry.
+     */
+    static async updateEntry(entryId: string, content: string, type: string): Promise<void> {
+        try {
+            const entry = await JournalEntry.findByPk(entryId);
+            if (!entry) {
+                throw new Error("⚠️ Journal entry not found!");
+            }
+
+            await entry.update({
+                content,
+                type: type,
+            });
+
+            logger.info(`✅ Journal entry ${entryId} updated successfully`);
+        } catch (error) {
+            logger.error(`❌ Error updating journal entry: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Deletes a journal entry.
+     */
+    static async deleteEntry(entryId: string): Promise<void> {
+        try {
+            const entry = await JournalEntry.findByPk(entryId);
+            if (!entry) {
+                throw new Error("⚠️ Journal entry not found!");
+            }
+
+            await entry.destroy();
+            logger.info(`✅ Journal entry ${entryId} deleted successfully`);
         } catch (error) {
             logger.error(`❌ Error deleting journal entry: ${error}`);
             throw error;
         }
     }
+
+
 }
 
 export default JournalService;

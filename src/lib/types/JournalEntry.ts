@@ -1,4 +1,4 @@
-type JournalEntryType = "highlight" | "thought" | "gratitude" | "reflection" | "affirmation";
+export type JournalEntryType = "highlight" | "thought" | "gratitude" | "reflection" | "affirmation";
 
 export interface JournalEntry {
     id?: string;
